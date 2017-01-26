@@ -1,5 +1,5 @@
 /*
- * openag_tslL2561.cpp
+ * openag_tsl2561.cpp
  * A library for TSL2561
  *
  * Copyright (c) 2017 Howard Webb
@@ -28,52 +28,97 @@
  * THE SOFTWARE.
  */
 #include <openag_tsl2561.h>
-#include <Arduino.h>
-#include <Wire.h>
-uint8_t TSL2561_CalculateLux::readRegister(int deviceAddress, int address)
-{
 
-    uint8_t value;
-     Wire.beginTransmission(deviceAddress);
-     Wire.write(address);                // register to read
-     Wire.endTransmission();
-     Wire.requestFrom(deviceAddress, 1); // read a byte
-     while(!Wire.available());
-     value = Wire.read();
-     //delay(100);
-     return value;
-}
-
-void TSL2561_CalculateLux::writeRegister(int deviceAddress, int address, uint8_t val)
-{
-     Wire.beginTransmission(deviceAddress);  // start transmission to device
-     Wire.write(address);                    // send register address
-     Wire.write(val);                        // send value to write
-     Wire.endTransmission();                 // end transmission
-     //delay(100);
-}
-void TSL2561_CalculateLux::getRegisters(void)
-{
-    CH0_LOW=readRegister(TSL2561_Address,TSL2561_Channal0L);
-    CH0_HIGH=readRegister(TSL2561_Address,TSL2561_Channal0H);
-    //read two bytes from registers 0x0E and 0x0F
-    CH1_LOW=readRegister(TSL2561_Address,TSL2561_Channal1L);
-    CH1_HIGH=readRegister(TSL2561_Address,TSL2561_Channal1H);
-
-    ch0 = (CH0_HIGH<<8) | CH0_LOW;
-    ch1 = (CH1_HIGH<<8) | CH1_LOW;
-}
+//......................Public....................................
 /*
-//replaced by OpenAg begin()
-void TSL2561_CalculateLux::init()
-{
+* Empty Constructor
+*/
+TSL2561::TSL2561(){}
+
+/*
+* Standard constructor, not used by Arduino 
+* IC2 address passes as parameter
+*/
+TSL2561::TSL2561(int address){
+   _TSL2561_Address = address;
+}
+
+//allow Arduino to pass constructor info during setup
+void TSL2561::setAddress(int address){
+  _TSL2561_Address = address;
+}
+
+/*
+* Std OpenAg sensor functions
+*/
+ void TSL2561::begin() {
+   Wire.begin(); // enable i2c port
    writeRegister(TSL2561_Address,TSL2561_Control,0x03);  // POWER UP
    writeRegister(TSL2561_Address,TSL2561_Timing,0x00);  //No High Gain (1x), integration time of 13ms
    writeRegister(TSL2561_Address,TSL2561_Interrupt,0x00);
    writeRegister(TSL2561_Address,TSL2561_Control,0x00);  // POWER Down
-}
+
+//OpenAg boilerplate
+   status_level = OK;
+   status_msg = "";
+   _send_lux = false;
+   _send_ir = false;
+   _send_full = false;
+   _time_of_last_reading = 0;
+ }
+
+/*
+* Retreive sensor data and store in private variable 
+* throttle readings so give sensor time to absorb light
 */
-signed long TSL2561_CalculateLux::readVisibleLux()
+ void TSL2561::update() {
+   if (millis() - _time_of_last_reading > _min_update_interval) {
+     unsigned long lux = readVisibleLux();
+     _time_of_last_reading = millis();
+      if (lux > 0){
+        _send_lux = true;
+	_send_ir = true;
+	_send_full = true;
+        status_level = OK;
+        status_msg = "";
+      } else {
+        status_level = ERROR;
+        status_msg = "31";
+      }
+	 }
+ } 
+
+/*
+* Access to data variables
+*/
+  bool TSL2561::get_Lux(std_msgs::UInt16 &msg){
+   msg.data = lux;
+   bool res = _send_lux;
+  _send_lux = false;
+  return res;
+}
+
+ bool TSL2561::get_Channel1(std_msgs::UInt16 &msg){
+   msg.data = channel1;
+   bool res = _send_lux;
+  _send_lux = false;
+  return res;
+}
+ 
+ bool TSL2561::get_Channel0(std_msgs::UInt16 &msg){
+   msg.data = channel0;
+   bool res = _send_lux;
+  _send_lux = false;
+  return res;
+}
+ 
+//.........................Private............................
+ 
+
+/*
+* Get register data for light
+*/
+signed long TSL2561::readVisibleLux()
 {
    writeRegister(TSL2561_Address,TSL2561_Control,0x03);  // POWER UP
    delay(14);
@@ -90,7 +135,8 @@ signed long TSL2561_CalculateLux::readVisibleLux()
    }
    return calculateLux(0, 0, 0);  //T package, no gain, 13ms
 }
-unsigned long TSL2561_CalculateLux::calculateLux(unsigned int iGain, unsigned int tInt,int iType)
+
+unsigned long TSL2561::calculateLux(unsigned int iGain, unsigned int tInt,int iType)
 {
  switch (tInt)
  {
@@ -158,63 +204,39 @@ channel1 = (ch1 * chScale) >> CH_SCALE;
   return (lux);
  }
  
-// Custom Additions 
-  bool TSL2561_CalculateLux::getLux(std_msgs::UInt16 &msg){
-   msg.data = lux;
-   bool res = _send_lux;
-  _send_lux = false;
-  return res;
+//Low level chip utilities
+
+void TSL2561::getRegisters(void)
+{
+    CH0_LOW=readRegister(TSL2561_Address,TSL2561_Channal0L);
+    CH0_HIGH=readRegister(TSL2561_Address,TSL2561_Channal0H);
+    //read two bytes from registers 0x0E and 0x0F
+    CH1_LOW=readRegister(TSL2561_Address,TSL2561_Channal1L);
+    CH1_HIGH=readRegister(TSL2561_Address,TSL2561_Channal1H);
+
+    ch0 = (CH0_HIGH<<8) | CH0_LOW;
+    ch1 = (CH1_HIGH<<8) | CH1_LOW;
 }
 
- bool TSL2561_CalculateLux::getChannel1(std_msgs::UInt16 &msg){
-   msg.data = channel1;
-   bool res = _send_lux;
-  _send_lux = false;
-  return res;
-}
- 
- bool TSL2561_CalculateLux::getChannel0(std_msgs::UInt16 &msg){
-   msg.data = channel0;
-   bool res = _send_lux;
-  _send_lux = false;
-  return res;
-}
- 
- //Std OpenAg sensor functions
- void TSL2561_CalculateLux::begin() {
-   Wire.begin(); // enable i2c port
-   writeRegister(TSL2561_Address,TSL2561_Control,0x03);  // POWER UP
-   writeRegister(TSL2561_Address,TSL2561_Timing,0x00);  //No High Gain (1x), integration time of 13ms
-   writeRegister(TSL2561_Address,TSL2561_Interrupt,0x00);
-   writeRegister(TSL2561_Address,TSL2561_Control,0x00);  // POWER Down
-//OpenAg boilerplate
-   status_level = OK;
-   status_msg = "";
-   _send_lux = false;
-   _send_ir = false;
-   _send_full = false;
-   _time_of_last_reading = 0;
- }
- 
- 
-//retreive sensor data and store in private variable 
- void TSL2561_CalculateLux::update() {
-   if (millis() - _time_of_last_reading > _min_update_interval) {
-     unsigned long lux = readVisibleLux();
-     _time_of_last_reading = millis();
-      if (lux > 0){
-        _send_lux = true;
-		_send_ir = true;
-		_send_full = true;
-        status_level = OK;
-        status_msg = "";
-      } else {
-        status_level = ERROR;
-        status_msg = "31";
-      }
-	 }
- }  
- 
- TSL2561_CalculateLux TSL2561;
+uint8_t TSL2561::readRegister(int deviceAddress, int address)
+{
 
+    uint8_t value;
+     Wire.beginTransmission(deviceAddress);
+     Wire.write(address);                // register to read
+     Wire.endTransmission();
+     Wire.requestFrom(deviceAddress, 1); // read a byte
+     while(!Wire.available());
+     value = Wire.read();
+     //delay(100);
+     return value;
+}
 
+void TSL2561::writeRegister(int deviceAddress, int address, uint8_t val)
+{
+     Wire.beginTransmission(deviceAddress);  // start transmission to device
+     Wire.write(address);                    // send register address
+     Wire.write(val);                        // send value to write
+     Wire.endTransmission();                 // end transmission
+     //delay(100);
+}

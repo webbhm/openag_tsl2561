@@ -1,0 +1,41 @@
+{
+  "environment": [
+    {
+      "_id": "environment_1",
+      "name": "Environment 1"
+    }
+  ],
+  "firmware_module":[
+   {
+    "type": "tsl2561",
+    "environment": "environment_1",
+    "_id": "tsl2561_1"
+   }
+   ],
+  "firmware_module_type": [
+    {
+      "_id": "tsl2561",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/webbhm/openag_tsl2561.git"
+      },
+      "header_file": "openag_tsl2561.h",
+      "class_name": "TSL2561_CalculateLux",
+      "description": "Driver for the TSL2561 LUX sensor",
+      "outputs": {
+        "Lux": {
+          "type": "std_msgs/UInt16"
+        },
+        "Channel0": {
+          "type": "std_msgs/UInt16"
+        },
+        "Channel1": {
+          "type": "std_msgs/Uint16"
+        }
+      },
+      "dependencies": [
+        {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
+      ]
+    }
+  ]
+}

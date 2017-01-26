@@ -1,0 +1,16 @@
+{
+    "name": "openag_tsl2561",
+    "keywords": "openag, tsl2561",
+    "description": "OpenAg driver for the TSL2561 LUX meter",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/webbhm/openag_tsl2561.git"
+    },
+    "frameworks": "arduino",
+    "platforms": "*",
+    "dependencies": [
+        {
+            "name": "openag_module"
+        }
+    ]
+}

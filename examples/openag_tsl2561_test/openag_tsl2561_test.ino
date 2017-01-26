@@ -30,7 +30,7 @@
  */
 
 #include <Wire.h>
-#include <Open_Ag_TSL2561.h>
+#include <openag_tsl2561.h>
 #include <openag_module.h>
 #include <ros.h>
 #include <std_msgs/UInt16.h>
@@ -39,20 +39,22 @@ std_msgs::UInt16 msg;
 unsigned long lux;
 unsigned long channel0;
 unsigned long channel1;
+TSL2561 tsl2561;
 
 void setup()
 {
 //  Wire.begin();
   Serial.begin(9600);
-  TSL2561.begin();
+  tsl2561.setAddress(29);
+  tsl2561.begin();
 }
 
 void loop()
 {
   bool old_data;
 
-  TSL2561.update();
-  old_data = TSL2561.getLux(msg);
+  tsl2561.update();
+  old_data = tsl2561.get_Lux(msg);
   if (old_data){
       Serial.println("Old Lux Data");
    } else {
@@ -61,7 +63,7 @@ void loop()
 
    lux = msg.data;
     
-  old_data = TSL2561.getChannel0(msg);
+  old_data = tsl2561.get_Channel0(msg);
   if (old_data){  Serial.print("The LUX value is: ");
   Serial.println(lux);
 
@@ -72,7 +74,7 @@ void loop()
 
    channel0 = msg.data;
     
-  old_data = TSL2561.getChannel1(msg);
+  old_data = tsl2561.get_Channel1(msg);
   if (old_data){
       Serial.println("Old Channel1 Data");
    } else {

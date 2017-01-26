@@ -1,5 +1,5 @@
 /*
- * Digital_Light_TSL2561.h
+ * openag_tsl2561.h
  * A library for TSL2561
  *
  * Copyright (c) 2012 seeed technology inc.
@@ -28,14 +28,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef Digital_Light_TSL2561_H
-#define Digital_Light_TSL2561_H
+#ifndef OPENAG_TSL2561_H
+#define OPENAG_TSL2561_H
 
 #include <Arduino.h>
-// OpenAg sensor std stuff
-#include <openag_module.h>
-#include <ros.h>
-#include <std_msgs/UInt16.h>
+#include <Wire.h>
+#include <openag_module.h>    //generic handler for all sensors
+#include <ros.h>              //Robotic Operating System
+#include <std_msgs/UInt16.h>  //ROS standard message units
 
 #define  TSL2561_Control  0x80
 #define  TSL2561_Timing   0x81
@@ -45,7 +45,7 @@
 #define  TSL2561_Channal1L 0x8E
 #define  TSL2561_Channal1H 0x8F
 
-#define TSL2561_Address  0x29       //device address
+#define TSL2561_Address  0x29       //device default address
 
 #define LUX_SCALE 14           // scale by 2^14
 #define RATIO_SCALE 9          // scale ratio by 2^9
@@ -104,15 +104,20 @@
 #define K8C 0x029a   // 1.3 * 2^RATIO_SCALE
 #define B8C 0x0000   // 0.000 * 2^LUX_SCALE
 #define M8C 0x0000   // 0.000 * 2^LUX_SCALE
-class TSL2561_CalculateLux : public Module  //note: inheritance from OpenAg module
+
+class TSL2561 : public Module  //note: inheritance from OpenAg module
 {
  public:
 //OpenAg std functions
+  TSL2561();
+  TSL2561(int address);
   void begin();
   void update();
-  bool getLux(std_msgs::UInt16 &msg);
-  bool getChannel0(std_msgs::UInt16 &msg);
-  bool getChannel1(std_msgs::UInt16 &msg);  
+  void setAddress(int address);
+  bool get_Lux(std_msgs::UInt16 &msg);
+  bool get_Channel0(std_msgs::UInt16 &msg);
+  bool get_Channel1(std_msgs::UInt16 &msg);  
+
  private:
   uint8_t CH0_LOW,CH0_HIGH,CH1_LOW,CH1_HIGH;
   uint16_t ch0,ch1;  //infrared and full spectrum readings (Chanel 0 and Chanel 1)
@@ -124,6 +129,8 @@ class TSL2561_CalculateLux : public Module  //note: inheritance from OpenAg modu
   unsigned int m;
   unsigned long temp;
   unsigned long lux;
+  int _TSL2561_Address;
+
 // Open Ag sensor stuff  
   bool _send_lux;
   bool _send_ir;
@@ -134,11 +141,10 @@ class TSL2561_CalculateLux : public Module  //note: inheritance from OpenAg modu
 //from Grove    
   signed long readVisibleLux();
   unsigned long calculateLux(unsigned int iGain, unsigned int tInt,int iType);
-//  void init(void);
   uint8_t readRegister(int deviceAddress, int address);
   void writeRegister(int deviceAddress, int address, uint8_t val);
  };
-extern TSL2561_CalculateLux  TSL2561;
+
 #endif
 
 
