@@ -20,7 +20,7 @@
         "url": "https://github.com/webbhm/openag_tsl2561.git"
       },
       "header_file": "openag_tsl2561.h",
-      "class_name": "TSL2561_CalculateLux",
+      "class_name": "TSL2561",
       "description": "Driver for the TSL2561 LUX sensor",
       "outputs": {
         "Lux": {
