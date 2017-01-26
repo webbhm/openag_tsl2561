@@ -1,18 +1,18 @@
 {
     "header_file": "openag_tsl2561.h",
     "class_name": "TSL2561",
-    "outputs": {
-        "Lux": {
-            "type": "std_msgs/UInt16"
-        },
-        "Channel0": {
-            "type": "std_msgs/UInt16"
-        },
-        "Channel1": {
-            "type": "std_msgs/UInt16"
+    "arguments":[
+        { 
+        "name": "address",
+        "type": "int",
+        "default": 29
         }
+        ],
+    "outputs": {
+        "Lux": {"type": "std_msgs/UInt16"}
     },
     "dependencies": [
-        {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
+        {"type": "git",
+          "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
     ]
 }
