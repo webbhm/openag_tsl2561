@@ -1,6 +1,6 @@
 {
     "header_file": "openag_tsl2561.h",
-    "class_name": "TSL2561_CalculateLux",
+    "class_name": "TSL2561",
     "outputs": {
         "Lux": {
             "type": "std_msgs/UInt16"
