@@ -1,15 +1,16 @@
 {
-  "environment": [
-    {
-      "_id": "environment_1",
-      "name": "Environment 1"
-    }
-  ],
+
   "firmware_module":[
    {
-    "type": "tsl2561",
+   "_id": "tsl2561_1", 
+   "type": "tsl2561",
     "environment": "environment_1",
-    "_id": "tsl2561_1"
+     "arguments":[41],
+     "outputs": {
+        "tsl2561_1_Lux": {"variable": "Lux"},
+        "tsl2561_1_Channel0": {"variable": "Channel0"},
+        "tsl2561_1_Channel1": {"variable": "Channel1"}
+      }
    }
    ],
   "firmware_module_type": [
@@ -22,6 +23,13 @@
       "header_file": "openag_tsl2561.h",
       "class_name": "TSL2561",
       "description": "Driver for the TSL2561 LUX sensor",
+    "arguments":[
+        { 
+        "name": "address",
+        "type": "int",
+        "default": 41
+        }
+      ],
       "outputs": {
         "Lux": {
           "type": "std_msgs/UInt16"
